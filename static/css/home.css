@@ -1,0 +1,40 @@
+#main {  
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+p {
+    font-size: 14px;
+}
+
+#particles-js {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  background-image: url("");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+#input {
+    background-color: black;
+    color: white;
+    border: solid 2px white !important;
+}
+
+body {
+    background-color: black;    
+    margin: 0;
+    display: block;
+    font:normal 75% Arial, Helvetica, sans-serif;
+    color: white;
+}
+
+canvas {
+  display: block;
+  vertical-align: bottom;
+}

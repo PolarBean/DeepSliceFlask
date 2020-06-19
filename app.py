@@ -1,0 +1,68 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jun 19 04:14:37 2020
+
+@author: ThermoDev
+"""
+import os
+from flask import Flask, flash, request, redirect, url_for, render_template
+from werkzeug.utils import secure_filename
+
+# Test Image Plot
+#import matplotlib.pyplot as plt
+#import matplotlib.image as mpimg
+
+
+UPLOAD_FOLDER = 'brain_images/'
+ALLOWED_EXTENSIONS = {'tiff', 'pjp', 'jfif', 'pjpeg', 'tif', 'gif', 'svg', 'bmp', 'svgz', 'webp', 'ico', 'xbm', 'dib','png', 'jpg', 'jpeg'}
+
+
+app = Flask(__name__)
+app.secret_key = 'super secret key'
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/', methods=['GET'])
+def home():
+    #request
+    bool = False
+    if 'images' in request.args:
+        images = request.args.get('images')
+        print(images)
+        for image in images.split(','):
+            print(image)    
+        bool = True
+    return render_template('public/index.html', bool=bool)
+
+
+@app.route('/process-image', methods=['POST'])
+def process_image():  
+    image_names = []
+    if request.method == 'POST' and 'images' in request.files:
+        print('len: ' + str(len( request.files.getlist('images'))))
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)  
+        # Check first occurence to see if there actually is a file.
+        # Probably a better way to check if user submitted form without a file
+        if(request.files.getlist('images')[0].filename != ''):
+            for image in request.files.getlist('images'):
+                if image.filename == '':
+                    flash('No selected image')
+                    return redirect(redirect(url_for('home')))
+                if image and allowed_file(image.filename):
+                    filename = secure_filename(image.filename) 
+                    print('filename:' + filename)
+                    image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    image_names.append(filename)
+            #return 'Upload Complete'
+            return redirect(url_for('home', images=','.join(image_names)))
+    print("Welp, we either didn't get images or it was a GET request")
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000,  use_reloader=False)
