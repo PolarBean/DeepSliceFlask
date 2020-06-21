@@ -1,14 +1,15 @@
 {% extends "public/layout.html" %}
 {% block content%}
+
 <div class="ui one inverted column stackable center aligned page grid" id="main">
-   <div class="column twelve wide">
+    <div class="column twelve wide">
         <form action="/process-image" class="ui inverted form" method="post" enctype="multipart/form-data">
-            <h1>Upload Images<h1>
-            <p>Upload your images please<p>
+            <h1>Upload Images</h1>
+            <p>Upload your images please</p>
             <div class="ui action input" style="font-size: initial">
-              <input type="file" id="input" name="images" accept="image/*" multiple required>
+                <input type="file" id="input" name="images" accept="image/*" multiple required>
             </div>
-            <div class="field">
+            <div class="field" style="padding-top: 10px">
                 <div class="ui checkbox">
                     <input type="checkbox" tabindex="0" required>
                     <label>I agree to the Terms and Conditions</label>
@@ -16,12 +17,20 @@
             </div>
             <button class="ui button" type="submit">Submit</button>
         </form>
-      {% if bool %}
-          <p>Bool Check</p>
-      {% endif %}
-   </div>
-   
-</div>
 
+        {% if images %}
+        <div class="ui massive middle aligned divided list inverted">
+            {% for image in images %}
+            <div class="item" style="text-align: left">
+                <img class="ui avatar image" src="{{ url_for('get_image', image_name=image) }}">
+                <div class="content">
+                    <p class="header">{{ image }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock content %}

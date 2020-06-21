@@ -1,1 +1,6 @@
+# Ignore our images
 brain_images/
+
+# Ignore Extras
+.idea/
+__pycache__/
