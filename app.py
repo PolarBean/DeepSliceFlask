@@ -17,6 +17,7 @@ from flask import (
     session,
 )
 from werkzeug.utils import secure_filename
+import uuid
 
 # Test Image Plot
 import matplotlib.pyplot as plt
@@ -54,7 +55,6 @@ def allowed_file(filename):
 
 @app.route("/", methods=["GET"])
 def home():
-    images = []
     if "images" in session:
         return render_template("public/index.html", images=session["images"])
     return render_template("public/index.html")
@@ -63,14 +63,17 @@ def home():
 @app.route("/get-image/<image_name>")
 def get_image(image_name):
     try:
-        return send_from_directory(app.config["IMAGE_FOLDER"], filename=image_name)
-    except FileNotFoundError:
+        return send_from_directory(session["unique_folder"], filename=image_name)
+    except TypeError: # Occurs when session["unique_folder"] is not set.
+        abort(404)
+    except FileNotFoundError: # Occurs when the file is not found in the directory listed.
         abort(404)
 
 
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
     session["images"] = None
+    session["unique_folder"] = None
     return redirect(url_for("home"))
 
 
@@ -81,6 +84,8 @@ def process_image():
         # print('len: ' + str(len(request.files.getlist('images'))))
         if not os.path.exists(app.config["IMAGE_FOLDER"]):
             os.makedirs(app.config["IMAGE_FOLDER"])
+        
+        unique_str = str(uuid.uuid4().hex)
         # Check first occurrence to see if there actually is a file.
         # Probably a better way to check if user submitted form without a file
         if request.files.getlist("images")[0].filename != "":
@@ -90,10 +95,13 @@ def process_image():
                     return redirect(redirect(url_for("home")))
                 if image and allowed_file(image.filename):
                     filename = secure_filename(image.filename)
-                    # print('filename: ' + filename)
-                    image.save(os.path.join(app.config["IMAGE_FOLDER"], filename))
+                    # TODO: Create a function that creates a folder if it doesn't exist.
+                    if not os.path.exists(app.config["IMAGE_FOLDER"] + unique_str):
+                        os.makedirs(app.config["IMAGE_FOLDER"] + unique_str)
+                    image.save(os.path.join(app.config["IMAGE_FOLDER"]  +  unique_str + '/', filename))
                     image_names.append(filename)
-            session["images"] = images = image_names
+            session["images"] = image_names
+            session["unique_folder"] = app.config["IMAGE_FOLDER"] + unique_str
     return redirect(url_for("home"))
 
 
