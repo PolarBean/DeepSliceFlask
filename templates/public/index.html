@@ -3,7 +3,8 @@
 
 <div class="ui one inverted column stackable center aligned page grid" id="main">
     <div class="column twelve wide" id="column-container">
-        <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="post" enctype="multipart/form-data">
+        <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="post"
+            enctype="multipart/form-data">
             <h1>Upload Images</h1>
             <p>Upload your images please</p>
             <div class="ui action input" style="font-size: initial">
@@ -15,7 +16,7 @@
                     <label>I agree to the Terms and Conditions</label>
                 </div>
             </div>
-            <button class="ui primary button" type="submit">Submit</button>
+            <button class="ui primary button">Submit</button>
         </form>
         <form action="/clear-session" class="ui inverted form" method="post">
             <button class="ui inverted red button">Clear Session</button>
@@ -24,13 +25,13 @@
         {% if images %}
         <div class="ui massive middle aligned divided list inverted">
             {% for image in images %}
-                {% set image_url = url_for('get_image', image_name=image)  %}
-                <div class="item" style="text-align: left">
-                    <img class="ui avatar image" src="{{ image_url }}">
-                    <div class="content">
-                        <p class="header">{{ image }}</p>
-                    </div>
+            {% set image_url = url_for('get_image', image_name=image)  %}
+            <div class="item" style="text-align: left">
+                <img class="ui avatar image" src="{{ image_url }}">
+                <div class="content">
+                    <p class="header">{{ image }}</p>
                 </div>
+            </div>
             {% endfor %}
         </div>
         {% endif %}
