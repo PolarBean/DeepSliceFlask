@@ -1,3 +1,42 @@
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: black;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background-image: linear-gradient(
+        to bottom,
+        violet,
+        indigo,
+        blue,
+        green,
+        yellow,
+        orange,
+        red
+    );
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background-image: linear-gradient(
+        to bottom,
+        violet,
+        indigo,
+        blue,
+        green,
+        yellow,
+        orange,
+        red
+    );
+    opacity: 0.5;
+}
+
 body {
     background-color: black;
     margin: 0;
@@ -23,19 +62,19 @@ p {
 }
 
 #particles-js {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: #000000;
-  background-image: url("");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 50% 50%;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000000;
+    background-image: url('');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 50%;
 }
 
 canvas {
-  display: block;
+    display: block;
 }
 
 .ui.list > .item > img.image {
