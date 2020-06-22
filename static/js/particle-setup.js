@@ -14,7 +14,7 @@ particlesJS("particles-js", {
 		line_linked: {
 			enable: true,
 			distance: 150,
-			color: "#ffffff",
+			color: "#FFFFFF",
 			opacity: 0.4,
 			width: 1
 		},
@@ -46,3 +46,8 @@ particlesJS("particles-js", {
 	},
 	retina_detect: true
 });
+
+body = document.body;
+html = document.documentElement;
+
+document.querySelector('#particles-js').style.height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );

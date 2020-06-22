@@ -47,7 +47,7 @@ def get_image(image_name):
 def process_image():
     image_names = []
     if request.method == 'POST' and 'images' in request.files:
-        print('len: ' + str(len(request.files.getlist('images'))))
+        # print('len: ' + str(len(request.files.getlist('images'))))
         if not os.path.exists(app.config['IMAGE_FOLDER']):
             os.makedirs(app.config['IMAGE_FOLDER'])
         # Check first occurrence to see if there actually is a file.
