@@ -2,14 +2,12 @@ body {
     background-color: black;
     margin: 0;
     display: contents;
-    /*font:normal 75% Arial, Helvetica, sans-serif; */
     color: white;
 }
 
 #main {
     height: 100%;
     display: flex;
-    /* flex-direction: column; */
     align-items: center;
     justify-content: center;
 }
@@ -37,9 +35,8 @@ p {
 
 canvas {
   display: block;
-  vertical-align: bottom;
 }
 
 .ui.list > .item > img.image {
-    background-color: fuchsia
+    background-color: white;
 }

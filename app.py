@@ -5,7 +5,7 @@ Created on Fri Jun 19 04:14:37 2020
 @author: ThermoDev
 """
 import os
-from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory, abort
+from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory, abort, session
 from werkzeug.utils import secure_filename
 
 # Test Image Plot
@@ -29,21 +29,10 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET'])
 def home():
-    # request
     images = []
-    if 'images' in request.args:
-        images = request.args.get('images')  # String
-        print(images)
-        '''
-        for image in images.split(','):
-            try:
-                img = mpimg.imread(app.config['IMAGE_FOLDER'] + image)
-                plt.imshow(img)
-            except FileNotFoundError:
-                img = None
-        '''
-        images = images.split(',')  # List
-    return render_template('public/index.html', images=images)
+    if 'images' in session:
+        return render_template('public/index.html', images=session['images'])
+    return render_template('public/index.html')
 
 
 @app.route('/get-image/<image_name>')
@@ -70,14 +59,12 @@ def process_image():
                     return redirect(redirect(url_for('home')))
                 if image and allowed_file(image.filename):
                     filename = secure_filename(image.filename)
-                    print('filename:' + filename)
+                    #print('filename: ' + filename)
                     image.save(os.path.join(app.config['IMAGE_FOLDER'], filename))
                     image_names.append(filename)
-            # return 'Upload Complete'
-            return redirect(url_for('home', images=','.join(image_names)))
-    print("Welp, we either didn't get images or it was a GET request")
+            session['images'] = images=image_names
     return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, use_reloader=False)
+    app.run(debug=True, port=5000, use_reloader=True)
