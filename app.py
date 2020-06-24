@@ -3,10 +3,22 @@
 Created on Fri Jun 19 04:14:37 2020
 
 @author: ThermoDev
+@description:
+    This is the FLASK based Python web app for the DEEP_SLICE library.
+
+    Each image uploaded will be saved in the FILE_FOLDER / a subfolder, 
+        e.g., FILE_FOLDER/sub/{images}
+    The results will then be saved in the FILE_FOLDER:
+        e.g., FILE_FOLDER/results.csv
+
 """
 # TODONE: Create a function that creates a folder if it doesn't exist.
-# TODO: Try and get rid of session['images'] and use session['unique_folder'] instead to gather all images in the folder.
-# TODO: Determine how the files should be saved. UNIQUE_FOLDER.csv, or UNIQUE_FOLDER/sub/results.csv
+# TODONE: Try and get rid of session['images'] and use session['unique_folder'] instead to gather all images in the folder.
+# TODONE: Determine how the files should be saved. UNIQUE_FOLDER.csv, or UNIQUE_FOLDER/sub/results.csv
+# TODO: Try and parse the unique folder as a string to the url
+# TODO: Change Brain_Images folder to Brain_Files
+# TODO: Make a query parameter for the unique folder - Then set the new session to be that unique folder
+# TODO: Remove app.config["FILE_FOLDER"] leading folder in unique_folder. Simplify?
 
 import os, uuid, sys
 from flask import (
@@ -17,6 +29,7 @@ from flask import (
     url_for,
     render_template,
     send_from_directory,
+    send_file,
     abort,
     session,
 )
@@ -27,10 +40,10 @@ from git.repo.base import Repo
 # import matplotlib.pyplot as plt
 # import matplotlib.image as mpimg
 
-IMAGE_FOLDER = "brain_images/"
+FILE_FOLDER = "brain_files/"
 DEEP_SLICE_FOLDER = "deep_slice/"
 SUB_FOLDER = "sub/"
-RESULTS_FILE = "Results"
+RESULTS_FILE = "results"
 ALLOWED_EXTENSIONS = {
     "tiff",
     "pjp",
@@ -53,7 +66,7 @@ ALLOWED_EXTENSIONS = {
 app = Flask(__name__)
 app.secret_key = "super secret key"
 app.config["SESSION_TYPE"] = "filesystem"
-app.config["IMAGE_FOLDER"] = IMAGE_FOLDER
+app.config["FILE_FOLDER"] = FILE_FOLDER
 app.config["DEEP_SLICE_FOLDER"] = DEEP_SLICE_FOLDER
 app.config["SUB_FOLDER"] = SUB_FOLDER
 app.config["RESULTS"] = RESULTS_FILE
@@ -65,18 +78,26 @@ def allowed_file(filename):
 
 @app.route("/", methods=["GET"])
 def home():
-    print("Home Hit!")
-    if "images" in session and session["images"] is not None:
-        print(session["images"])
-        print(get_some())
-        return render_template("public/index.html", images=session["images"])
+    print("HOME")
+    if request.args.get("unique_folder"):
+        # print(request.args.get("unique_folder"))
+        set_session(request.args.get("unique_folder"))
+    if "unique_folder" in session and session["unique_folder"] is not None:
+        completed = get_some()
+        # Run it once more as the necessary files should be downloaded.
+        if not completed:
+            get_some()
+        return render_template("public/index.html", folder=session["unique_folder"])
+
     return render_template("public/index.html")
 
 
-@app.route("/get-image/<image_name>")
-def get_image(image_name):
+@app.route("/get-results/<path:folder>/<type>")
+def get_results(folder, type):
+    print("Hey")
+    print(folder + app.config["RESULTS"] + "." + type)
     try:
-        return send_from_directory(session["unique_folder"] + "/" + app.config["SUB_FOLDER"], filename=image_name,)
+        return send_from_directory(folder, filename=app.config["RESULTS"] + "." + type, as_attachment=True)
     except TypeError:  # Occurs when session["unique_folder"] is not set.
         abort(404)
     except FileNotFoundError:  # Occurs when the file is not found in the directory listed.
@@ -85,7 +106,6 @@ def get_image(image_name):
 
 @app.route("/clear-session", methods=["GET", "POST"])
 def clear_session():
-    session["images"] = None
     session["unique_folder"] = None
     session.modified = True
     return redirect(url_for("home"))
@@ -96,7 +116,7 @@ def process_image():
     image_names = []
     if request.method == "POST" and "images" in request.files:
         # print('len: ' + str(len(request.files.getlist('images'))))
-        create_folder(app.config["IMAGE_FOLDER"])
+        create_folder(app.config["FILE_FOLDER"])
 
         unique_str = str(uuid.uuid4().hex)
         # Check first occurrence to see if there actually is a file.
@@ -108,48 +128,58 @@ def process_image():
                     return redirect(redirect(url_for("home")))
                 if image and allowed_file(image.filename):
                     filename = secure_filename(image.filename)
-                    create_folder(app.config["IMAGE_FOLDER"] + unique_str)
-                    create_folder(app.config["IMAGE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
+                    create_folder(app.config["FILE_FOLDER"] + unique_str)
+                    create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
                     image.save(
                         os.path.join(
-                            app.config["IMAGE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,
+                            app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,
                         )
                     )
                     image_names.append(filename)
-            session["images"] = image_names
-            session["unique_folder"] = app.config["IMAGE_FOLDER"] + unique_str
+            session["unique_folder"] = app.config["FILE_FOLDER"] + unique_str
     return redirect(url_for("home"))
+
+
+#TODO: Set the session as the folder
+def set_session(folder):
+    print(folder)
+    if os.path.isdir(folder):
+        print("It... exists?")
 
 
 def create_folder(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+    else:
+        print("Dir already exists at: " + dir)
 
 
 def get_deep_slice():
-    if not os.path.exists(app.config["IMAGE_FOLDER"]):
+    if not os.path.exists(app.config["DEEP_SLICE_FOLDER"]):
         Repo.clone_from(
             "https://github.com/PolarBean/DeepSlice", app.config["DEEP_SLICE_FOLDER"],
         )
 
 
 def get_some():
-    try:
-        sys.path.insert(0, os.getcwd() + "/deep_slice")
-        from deep_slice.DeepSlice import DeepSlice
+    if not os.path.exists(session["unique_folder"] + '/' + app.config["RESULTS"] + ".csv"):
+        try:
+            sys.path.insert(0, os.getcwd() + "/deep_slice")
+            from deep_slice.DeepSlice import DeepSlice
 
-        # print(session["unique_folder"])
-        Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
-        Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
-        Model.predict(session["unique_folder"])  # Folder Name
-        Model.Save_Results(session["unique_folder"])  # FileName + CSV / XML
-        return "Completed"
-    except ImportError as e:
-        print("NO WAY!")
-        print(e)
-        get_deep_slice()
-
+            # print(session["unique_folder"])
+            Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
+            Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
+            Model.predict(session["unique_folder"])  # Folder Name
+            Model.Save_Results(session["unique_folder"] + "/" + app.config["RESULTS"])  # FileName + CSV / XML
+            return True
+        except ImportError as e:
+            # Need to download the Deep_Slice files from github to perform processing.
+            get_deep_slice()
+            return False
+    else:
+        # File already exists. Already performed processing.
+        return True
 
 if __name__ == "__main__":
-
     app.run(debug=True, port=5000, use_reloader=True)

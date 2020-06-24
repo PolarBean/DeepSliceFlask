@@ -22,18 +22,9 @@
             <button class="ui inverted red button">Clear Session</button>
         </form>
 
-        {% if images %}
-        <div class="ui massive middle aligned divided list inverted">
-            {% for image in images %}
-            {% set image_url = url_for('get_image', image_name=image)  %}
-            <div class="item" style="text-align: left">
-                <img class="ui avatar image" src="{{ image_url }}">
-                <div class="content">
-                    <p class="header">{{ image }}</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+        {% if folder %}
+            <a href="/get-results/{{folder}}/csv" id="download-files">Download CSV</a>
+            <a href="/get-results/{{folder}}/xml" id="download-files">Download XML</a>
         {% endif %}
     </div>
 </div>
