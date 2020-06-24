@@ -6,7 +6,7 @@ Created on Fri Jun 19 04:14:37 2020
 """
 # TODONE: Create a function that creates a folder if it doesn't exist.
 # TODO: Try and get rid of session['images'] and use session['unique_folder'] instead to gather all images in the folder.
-# TODO: Determine how the files should be saved. UNIQUE_FOLDER.csv, or UNIQUE_FOLDER/sub/results.csv 
+# TODO: Determine how the files should be saved. UNIQUE_FOLDER.csv, or UNIQUE_FOLDER/sub/results.csv
 
 import os, uuid, sys
 from flask import (
@@ -30,7 +30,7 @@ from git.repo.base import Repo
 IMAGE_FOLDER = "brain_images/"
 DEEP_SLICE_FOLDER = "deep_slice/"
 SUB_FOLDER = "sub/"
-RESULTS_FILE =  "Results"
+RESULTS_FILE = "Results"
 ALLOWED_EXTENSIONS = {
     "tiff",
     "pjp",
@@ -57,7 +57,7 @@ app.config["IMAGE_FOLDER"] = IMAGE_FOLDER
 app.config["DEEP_SLICE_FOLDER"] = DEEP_SLICE_FOLDER
 app.config["SUB_FOLDER"] = SUB_FOLDER
 app.config["RESULTS"] = RESULTS_FILE
- 
+
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -76,7 +76,7 @@ def home():
 @app.route("/get-image/<image_name>")
 def get_image(image_name):
     try:
-        return send_from_directory(session["unique_folder"] + '/' + app.config["SUB_FOLDER"], filename=image_name)
+        return send_from_directory(session["unique_folder"] + "/" + app.config["SUB_FOLDER"], filename=image_name,)
     except TypeError:  # Occurs when session["unique_folder"] is not set.
         abort(404)
     except FileNotFoundError:  # Occurs when the file is not found in the directory listed.
@@ -109,24 +109,15 @@ def process_image():
                 if image and allowed_file(image.filename):
                     filename = secure_filename(image.filename)
                     create_folder(app.config["IMAGE_FOLDER"] + unique_str)
-                    create_folder(
-                        app.config["IMAGE_FOLDER"]
-                        + unique_str
-                        + "/"
-                        + app.config["SUB_FOLDER"]
-                    )
+                    create_folder(app.config["IMAGE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
                     image.save(
                         os.path.join(
-                            app.config["IMAGE_FOLDER"]
-                            + unique_str
-                            + "/"
-                            + app.config["SUB_FOLDER"],
-                            filename,
+                            app.config["IMAGE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,
                         )
                     )
                     image_names.append(filename)
             session["images"] = image_names
-            session["unique_folder"] = app.config["IMAGE_FOLDER"] + unique_str 
+            session["unique_folder"] = app.config["IMAGE_FOLDER"] + unique_str
     return redirect(url_for("home"))
 
 
@@ -138,7 +129,7 @@ def create_folder(dir):
 def get_deep_slice():
     if not os.path.exists(app.config["IMAGE_FOLDER"]):
         Repo.clone_from(
-            "https://github.com/PolarBean/DeepSlice", app.config["DEEP_SLICE_FOLDER"]
+            "https://github.com/PolarBean/DeepSlice", app.config["DEEP_SLICE_FOLDER"],
         )
 
 
@@ -147,11 +138,11 @@ def get_some():
         sys.path.insert(0, os.getcwd() + "/deep_slice")
         from deep_slice.DeepSlice import DeepSlice
 
-        #print(session["unique_folder"])
+        # print(session["unique_folder"])
         Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
-        Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5") 
-        Model.predict(session["unique_folder"]) # Folder Name
-        Model.Save_Results(session["unique_folder"]) # FileName + CSV / XML
+        Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
+        Model.predict(session["unique_folder"])  # Folder Name
+        Model.Save_Results(session["unique_folder"])  # FileName + CSV / XML
         return "Completed"
     except ImportError as e:
         print("NO WAY!")
