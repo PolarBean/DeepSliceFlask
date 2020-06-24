@@ -1,6 +1,10 @@
 # Ignore our images
 brain_images/
 
+# Ignore Deep Slice
+deep_slice/
+
 # Ignore Extras
 .idea/
 __pycache__/
+.spyproject/
