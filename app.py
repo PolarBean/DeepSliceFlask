@@ -21,7 +21,7 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Try and parse the unique folder as a string to the url
 # TODONE: Make a query parameter for the unique folder - Then set the new session to be that unique folder
 # TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
-
+# TODO: Clear session entirely. Remove button from Index.html.
 
 import os, uuid, sys
 from flask import (
@@ -83,8 +83,7 @@ def allowed_file(filename):
 @app.route("/", methods=["GET"])
 def home():
     print("HOME")
-    if request.args.get("unique"):
-        set_session(request.args.get("unique"))
+    # If session["unique"] is here, just redirect them to a route of their previously processed info
     if "unique" in session and session["unique"] is not None:
         unique = session["unique"]
         completed = get_some(unique)
@@ -99,6 +98,10 @@ def home():
 # Route for already processed brain images
 @app.route("/<unique>", methods=["GET"])
 def home_unique(unique):
+    completed = get_some(unique)
+    # Run it once more as the necessary files should be downloaded.
+    if not completed:
+        get_some(unique)
     set_session(unique)
     return render_template("public/index.html", unique=unique)
 
@@ -145,7 +148,7 @@ def process_image():
                     )
                     image_names.append(filename)
             session["unique"] = unique_str
-    return redirect(url_for("home", unique=unique_str))
+    return redirect(url_for("home_unique", unique=unique_str))
 
 def set_session(unique):
     print(unique)
@@ -167,7 +170,7 @@ def get_deep_slice():
 
 
 def get_some(unique):
-    if not os.path.exists(app.config["FILE_FOLDER"] + session["unique"] + "/" + app.config["RESULTS"] + ".csv"):
+    if not os.path.exists(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"] + ".csv"):
         try:
             sys.path.insert(0, os.getcwd() + "/deep_slice")
             from deep_slice.DeepSlice import DeepSlice
