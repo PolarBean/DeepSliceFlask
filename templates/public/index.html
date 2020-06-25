@@ -22,9 +22,9 @@
             <button class="ui inverted red button">Clear Session</button>
         </form>
 
-        {% if folder %}
-            <a href="/get-results/{{folder}}/csv" id="download-files">Download CSV</a>
-            <a href="/get-results/{{folder}}/xml" id="download-files">Download XML</a>
+        {% if unique %}
+            <a href="/get-results/{{unique}}/csv" id="download-files">Download CSV</a>
+            <a href="/get-results/{{unique}}/xml" id="download-files">Download XML</a>
         {% endif %}
     </div>
 </div>

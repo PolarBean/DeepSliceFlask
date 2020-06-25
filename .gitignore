@@ -1,5 +1,5 @@
-# Ignore our images
-brain_images/
+# Ignore our files
+brain_files
 
 # Ignore Deep Slice
 deep_slice/

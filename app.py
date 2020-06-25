@@ -6,8 +6,8 @@ Created on Fri Jun 19 04:14:37 2020
 @description:
     This is the FLASK based Python web app for the DEEP_SLICE library.
 
-    Each image uploaded will be saved in the FILE_FOLDER / a subfolder, 
-        e.g., FILE_FOLDER/sub/{images}
+    Each image uploaded will be saved in the FILE_FOLDER and SUBFOLDER, 
+        e.g., FILE_FOLDER/SUB_FOLDER/{images}
     The results will then be saved in the FILE_FOLDER:
         e.g., FILE_FOLDER/results.csv
 
@@ -16,9 +16,9 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Try and get rid of session['images'] and use session['unique_folder'] instead to gather all images in the folder.
 # TODONE: Determine how the files should be saved. UNIQUE_FOLDER.csv, or UNIQUE_FOLDER/sub/results.csv
 # TODO: Try and parse the unique folder as a string to the url
-# TODO: Change Brain_Images folder to Brain_Files
+# TODONE: Change Brain_Images folder to Brain_Files
 # TODO: Make a query parameter for the unique folder - Then set the new session to be that unique folder
-# TODO: Remove app.config["FILE_FOLDER"] leading folder in unique_folder. Simplify?
+# TODO: Remove app.config["FILE_FOLDER"] leading folder in unique_folder. Simplify? <- 
 
 import os, uuid, sys
 from flask import (
@@ -42,7 +42,7 @@ from git.repo.base import Repo
 
 FILE_FOLDER = "brain_files/"
 DEEP_SLICE_FOLDER = "deep_slice/"
-SUB_FOLDER = "sub/"
+SUB_FOLDER = "images/"
 RESULTS_FILE = "results"
 ALLOWED_EXTENSIONS = {
     "tiff",
@@ -87,17 +87,17 @@ def home():
         # Run it once more as the necessary files should be downloaded.
         if not completed:
             get_some()
-        return render_template("public/index.html", folder=session["unique_folder"])
+        return render_template("public/index.html", unique=session["unique_folder"])
 
     return render_template("public/index.html")
 
 
-@app.route("/get-results/<path:folder>/<type>")
-def get_results(folder, type):
+@app.route("/get-results/<path:unique>/<type>")
+def get_results(unique, type):
     print("Hey")
-    print(folder + app.config["RESULTS"] + "." + type)
+    print(app.config["FILE_FOLDER"] + unique + app.config["RESULTS"] + "." + type)
     try:
-        return send_from_directory(folder, filename=app.config["RESULTS"] + "." + type, as_attachment=True)
+        return send_from_directory(app.config["FILE_FOLDER"] + unique, filename=app.config["RESULTS"] + "." + type, as_attachment=True)
     except TypeError:  # Occurs when session["unique_folder"] is not set.
         abort(404)
     except FileNotFoundError:  # Occurs when the file is not found in the directory listed.
@@ -131,16 +131,14 @@ def process_image():
                     create_folder(app.config["FILE_FOLDER"] + unique_str)
                     create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
                     image.save(
-                        os.path.join(
-                            app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,
-                        )
+                        os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,)
                     )
                     image_names.append(filename)
-            session["unique_folder"] = app.config["FILE_FOLDER"] + unique_str
+            session["unique_folder"] = unique_str
     return redirect(url_for("home"))
 
 
-#TODO: Set the session as the folder
+# TODO: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique_folder'])
 def set_session(folder):
     print(folder)
     if os.path.isdir(folder):
@@ -162,7 +160,7 @@ def get_deep_slice():
 
 
 def get_some():
-    if not os.path.exists(session["unique_folder"] + '/' + app.config["RESULTS"] + ".csv"):
+    if not os.path.exists(app.config["FILE_FOLDER"] + session["unique_folder"] + "/" + app.config["RESULTS"] + ".csv"):
         try:
             sys.path.insert(0, os.getcwd() + "/deep_slice")
             from deep_slice.DeepSlice import DeepSlice
@@ -170,8 +168,8 @@ def get_some():
             # print(session["unique_folder"])
             Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
             Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
-            Model.predict(session["unique_folder"])  # Folder Name
-            Model.Save_Results(session["unique_folder"] + "/" + app.config["RESULTS"])  # FileName + CSV / XML
+            Model.predict(app.config["FILE_FOLDER"] + session["unique_folder"])  # Folder Name
+            Model.Save_Results(app.config["FILE_FOLDER"] + session["unique_folder"] + "/" + app.config["RESULTS"])  # FileName + CSV / XML
             return True
         except ImportError as e:
             # Need to download the Deep_Slice files from github to perform processing.
@@ -180,6 +178,7 @@ def get_some():
     else:
         # File already exists. Already performed processing.
         return True
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, use_reloader=True)
