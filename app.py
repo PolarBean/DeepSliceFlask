@@ -18,8 +18,10 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Determine how the files should be saved. unique.csv, or unique/sub/results.csv
 # TODONE: Change Brain_Images folder to Brain_Files
 # TODONE: Remove app.config["FILE_FOLDER"] leading folder in unique. Simplify? 
-# TODO: Try and parse the unique folder as a string to the url
-# TODO: Make a query parameter for the unique folder - Then set the new session to be that unique folder
+# TODONE: Try and parse the unique folder as a string to the url
+# TODONE: Make a query parameter for the unique folder - Then set the new session to be that unique folder
+# TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
+
 
 import os, uuid, sys
 from flask import (
@@ -145,8 +147,6 @@ def process_image():
             session["unique"] = unique_str
     return redirect(url_for("home", unique=unique_str))
 
-
-# TODO: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
 def set_session(unique):
     print(unique)
     session["unique"] = unique
