@@ -17,7 +17,7 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Try and get rid of session['images'] and use session['unique'] instead to gather all images in the folder.
 # TODONE: Determine how the files should be saved. unique.csv, or unique/sub/results.csv
 # TODONE: Change Brain_Images folder to Brain_Files
-# TODONE: Remove app.config["FILE_FOLDER"] leading folder in unique. Simplify? 
+# TODONE: Remove app.config["FILE_FOLDER"] leading folder in unique. Simplify?
 # TODONE: Try and parse the unique folder as a string to the url
 # TODONE: Make a query parameter for the unique folder - Then set the new session to be that unique folder
 # TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
@@ -79,6 +79,11 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def long_load(typeback):
+    time.sleep(5)
+    return "Loading..."
+
+
 # Route for not yet or about to be processed brain images
 @app.route("/", methods=["GET"])
 def home():
@@ -90,11 +95,12 @@ def home():
         # Run it once more as the necessary files should be downloaded.
         if not completed:
             get_some(unique)
-        
-        return redirect(url_for('home_unique', unique=session["unique"]))
+
+        return redirect(url_for("home_unique", unique=session["unique"]))
 
     return render_template("public/index.html")
-    
+
+
 # Route for already processed brain images
 @app.route("/<unique>", methods=["GET"])
 def home_unique(unique):
@@ -105,11 +111,14 @@ def home_unique(unique):
     set_session(unique)
     return render_template("public/index.html", unique=unique)
 
+
 @app.route("/get-results/<path:unique>/<type>")
 def get_results(unique, type):
     print(app.config["FILE_FOLDER"] + unique + app.config["RESULTS"] + "." + type)
     try:
-        return send_from_directory(app.config["FILE_FOLDER"] + unique, filename=app.config["RESULTS"] + "." + type, as_attachment=True)
+        return send_from_directory(
+            app.config["FILE_FOLDER"] + unique, filename=app.config["RESULTS"] + "." + type, as_attachment=True
+        )
     except TypeError:  # Occurs when session["unique"] is not set.
         abort(404)
     except FileNotFoundError:  # Occurs when the file is not found in the directory listed.
@@ -150,6 +159,7 @@ def process_image():
             session["unique"] = unique_str
     return redirect(url_for("home_unique", unique=unique_str))
 
+
 def set_session(unique):
     print(unique)
     session["unique"] = unique
@@ -174,12 +184,16 @@ def get_some(unique):
         try:
             sys.path.insert(0, os.getcwd() + "/deep_slice")
             from deep_slice.DeepSlice import DeepSlice
-
-            # print(session["unique"])
-            Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
-            Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
+            
+            if "MODEL" not in app.config:
+                Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
+                Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
+                app.config["MODEL"] = Model
+                
+            Model = app.config["MODEL"]
             Model.predict(app.config["FILE_FOLDER"] + unique)  # Folder Name
             Model.Save_Results(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"])  # FileName + CSV / XML
+
             return True
         except ImportError as e:
             # Need to download the Deep_Slice files from github to perform processing.
@@ -189,6 +203,7 @@ def get_some(unique):
         # File already exists. Already performed processing.
         return True
 
+    
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, use_reloader=True)

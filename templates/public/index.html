@@ -3,10 +3,12 @@
 
 <div class="ui one inverted column stackable center aligned page grid" id="main">
     <div class="column twelve wide" id="column-container">
-        <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="post"
+        
+        {% if not unique %}
+        <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="POST"
             enctype="multipart/form-data">
-            <h1>Upload Images</h1>
-            <p>Upload your images please</p>
+            <h1>Deep Slice</h1>
+            <p>Upload your images of brain slices.</p>
             <div class="ui action input" style="font-size: initial">
                 <input type="file" id="input" name="images" accept="image/*" multiple required>
             </div>
@@ -16,17 +18,40 @@
                     <label>I agree to the Terms and Conditions</label>
                 </div>
             </div>
-            <button class="ui primary button">Submit</button>
+            <button class="ui primary button" onclick=showLoading()>Submit</button>
         </form>
-        <form action="/clear-session" class="ui inverted form" method="post">
-            <button class="ui inverted red button">Clear Session</button>
+        <!-- Loading Div -->
+        <div class="ui" id="loading" hidden>
+            <div class="ui active dimmer">
+                <div class="ui indeterminate text loader">Preparing Files...</div>
+            </div>
+            <!-- <p></p> -->
+        </div>
+
+        {% else %}
+        <!-- Display Files to download -->
+        <div id="download-files">
+            <h1>Files ready to download:</h1>
+            <form action="/get-results/{{unique}}/csv" class="ui inverted form" method="GET">
+                <button class="ui secondary button" type="submit">Download CSV</button>
+            </form>
+            <form action="/get-results/{{unique}}/xml" class="ui inverted form" method="GET">
+                <button class="ui secondary button" type="submit">Download XML</button>
+            </form>
+        </div>
+        
+        <form action="/clear-session" class="ui inverted form" method="POST">
+            <button class="ui inverted red button">Go Back</button>
         </form>
 
-        {% if unique %}
-            <a href="/get-results/{{unique}}/csv" id="download-files">Download CSV</a>
-            <a href="/get-results/{{unique}}/xml" id="download-files">Download XML</a>
         {% endif %}
     </div>
 </div>
+
+<script>
+    function showLoading() {
+        document.querySelector('#loading').hidden = false;
+    }
+</script>
 
 {% endblock content %}
