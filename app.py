@@ -10,7 +10,7 @@ Created on Fri Jun 19 04:14:37 2020
         e.g., FILE_FOLDER/SUB_FOLDER/{images}
     The results will then be saved in the FILE_FOLDER:
         e.g., FILE_FOLDER/results.csv
-    User will then be able to download those results by clicking on "Download CSV"
+    User will then be able to download those results by clicking on "Download CSV" or "Download XML"
 
 """
 # TODONE: Create a function that creates a folder if it doesn't exist.
@@ -21,9 +21,11 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Try and parse the unique folder as a string to the url
 # TODONE: Make a query parameter for the unique folder - Then set the new session to be that unique folder
 # TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
-# TODO: Clear session entirely. Remove button from Index.html.
+# TODONE: Clear session entirely. Remove button from Index.html. UPDATE: Keep session as users may want to return to the homepage and still view their results.
+# TODO: Check if it is currently predicting, wait until it finished - Syncrhonous?
+# TODO: Change Threading to USWGI lock once deployed to server
 
-import os, uuid, sys
+import os, uuid, sys, threading
 from flask import (
     Flask,
     flash,
@@ -74,14 +76,11 @@ app.config["DEEP_SLICE_FOLDER"] = DEEP_SLICE_FOLDER
 app.config["SUB_FOLDER"] = SUB_FOLDER
 app.config["RESULTS"] = RESULTS_FILE
 
+sem = threading.Semaphore()
+
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def long_load(typeback):
-    time.sleep(5)
-    return "Loading..."
 
 
 # Route for not yet or about to be processed brain images
@@ -184,16 +183,19 @@ def get_some(unique):
         try:
             sys.path.insert(0, os.getcwd() + "/deep_slice")
             from deep_slice.DeepSlice import DeepSlice
-            
+
+            sem.acquire()  # Initiate Lock
+
             if "MODEL" not in app.config:
                 Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
                 Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
                 app.config["MODEL"] = Model
-                
+
             Model = app.config["MODEL"]
             Model.predict(app.config["FILE_FOLDER"] + unique)  # Folder Name
             Model.Save_Results(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"])  # FileName + CSV / XML
 
+            sem.release()  # Release lock
             return True
         except ImportError as e:
             # Need to download the Deep_Slice files from github to perform processing.
@@ -203,7 +205,6 @@ def get_some(unique):
         # File already exists. Already performed processing.
         return True
 
-    
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, use_reloader=True)
