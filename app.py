@@ -208,3 +208,7 @@ def get_some(unique):
 
 if __name__ == "__main__":
     app.run()
+
+
+def create_app():
+    return app
