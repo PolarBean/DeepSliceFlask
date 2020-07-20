@@ -22,7 +22,7 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Make a query parameter for the unique folder - Then set the new session to be that unique folder
 # TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
 # TODONE: Clear session entirely. Remove button from Index.html. UPDATE: Keep session as users may want to return to the homepage and still view their results.
-# TODO: Check if it is currently predicting, wait until it finished - Syncrhonous?
+# TODONE: Check if it is currently predicting, wait until it finished - Syncrhonous?
 # TODO: Change Threading to USWGI lock once deployed to server
 
 import os, uuid, sys, threading
