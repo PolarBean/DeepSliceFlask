@@ -23,7 +23,12 @@ Created on Fri Jun 19 04:14:37 2020
 # TODONE: Set the session as the folder (Can't be done until we remove FILE_FOLDER from session['unique'])
 # TODONE: Clear session entirely. Remove button from Index.html. UPDATE: Keep session as users may want to return to the homepage and still view their results.
 # TODONE: Check if it is currently predicting, wait until it finished - Syncrhonous?
+# TODO: Deploy to server 
 # TODO: Change Threading to USWGI lock once deployed to server
+# TODO: Create User Registration, Login Page
+# TODO: Create Database for Users
+# TODO: Hook up Registration and Login with Database
+# TODO: Create a Dashboard for Users
 
 import os, uuid, sys, threading
 from flask import (
@@ -48,6 +53,7 @@ from git.repo.base import Repo
 FILE_FOLDER = "brain_files/"
 DEEP_SLICE_FOLDER = "deep_slice/"
 SUB_FOLDER = "images/"
+FOLDER_NAME = SUB_FOLDER[:-1]
 RESULTS_FILE = "results"
 ALLOWED_EXTENSIONS = {
     "tiff",
@@ -74,14 +80,25 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["FILE_FOLDER"] = FILE_FOLDER
 app.config["DEEP_SLICE_FOLDER"] = DEEP_SLICE_FOLDER
 app.config["SUB_FOLDER"] = SUB_FOLDER
+app.config["FOLDER_NAME"] = FOLDER_NAME
 app.config["RESULTS"] = RESULTS_FILE
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 sem = threading.Semaphore()
-
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+def call_get_data(unique):
+    completed = get_data(unique)
+    # Run it once more as the necessary files should be downloaded.
+    if not completed:
+        completed = get_data(unique)
+    if completed:
+        return True
+    else: 
+        return False
 
 # Route for not yet or about to be processed brain images
 @app.route("/", methods=["GET"])
@@ -90,23 +107,20 @@ def home():
     # If session["unique"] is here, just redirect them to a route of their previously processed info
     if "unique" in session and session["unique"] is not None:
         unique = session["unique"]
-        completed = get_some(unique)
-        # Run it once more as the necessary files should be downloaded.
-        if not completed:
-            get_some(unique)
-
+        success_call = call_get_data(unique)
+        print(success_call)
         return redirect(url_for("home_unique", unique=session["unique"]))
 
+
+    # Return index template along with error
     return render_template("public/index.html")
 
 
 # Route for already processed brain images
 @app.route("/<unique>", methods=["GET"])
 def home_unique(unique):
-    completed = get_some(unique)
-    # Run it once more as the necessary files should be downloaded.
-    if not completed:
-        get_some(unique)
+    success_call = call_get_data(unique)
+    print(success_call)
     set_session(unique)
     return render_template("public/index.html", unique=unique)
 
@@ -140,7 +154,7 @@ def process_image():
         create_folder(app.config["FILE_FOLDER"])
 
         unique_str = str(uuid.uuid4().hex)
-        # Check first occurrence to see if there actually is a file.
+        # Check first occurrence to see if there actually is a file
         # Probably a better way to check if user submitted form without a file
         if request.files.getlist("images")[0].filename != "":
             for image in request.files.getlist("images"):
@@ -178,16 +192,18 @@ def get_deep_slice():
         )
 
 
-def get_some(unique):
+def get_data(unique):
     if not os.path.exists(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"] + ".csv"):
         try:
             sys.path.insert(0, os.getcwd() + "/deep_slice")
             from deep_slice.DeepSlice import DeepSlice
-
             sem.acquire()  # Initiate Lock
 
             if "MODEL" not in app.config:
-                Model = DeepSlice(app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5")
+                Model = DeepSlice(
+                    app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5",
+                    web=True,
+                    folder_name=app.config["FOLDER_NAME"])
                 Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
                 app.config["MODEL"] = Model
 
@@ -198,8 +214,13 @@ def get_some(unique):
             sem.release()  # Release lock
             return True
         except ImportError as e:
+            sem.release()
             # Need to download the Deep_Slice files from github to perform processing.
+            print("Could not import Deep Slice, or a library in Deep Slice. Importing...")
             get_deep_slice()
+            return False
+        except Exception as e:
+            sem.release()
             return False
     else:
         # File already exists. Already performed processing.
@@ -207,7 +228,7 @@ def get_some(unique):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, port=5000, use_reloader=True)
 
 
 def create_app():
