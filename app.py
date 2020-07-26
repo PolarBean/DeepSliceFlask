@@ -217,6 +217,7 @@ def get_data(unique):
             sem.release()
             # Need to download the Deep_Slice files from github to perform processing.
             print("Could not import Deep Slice, or a library in Deep Slice. Importing...")
+            print(e)
             get_deep_slice()
             return False
         except Exception as e:
