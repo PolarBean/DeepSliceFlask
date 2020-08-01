@@ -4,7 +4,7 @@ sudo uwsgi --http-socket :5000 --plugin python38 --module wsgi:app  --virtualenv
 sudo uwsgi myapp.ini --http-socket :5000
 
 # To Kill processes:
-pkill -9 uwsgi
+sudo pkill -9 uwsgi
 
 # No Module Named Encodings? Wrong Virtualenv!
 virtualenv = myenv // Something like this
@@ -22,9 +22,15 @@ sudo ln -sf /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/myapp
 # Then restart with
 sudo service nginx restart
 
-# Seal the Deal?
+# Activate environment:
+source myenv/bin/activate
+
+# Seal the Deal? (ACTIVATE ENV FIRST!)
 cd /var/www/myapp
-nohup uwsgi myapp.ini &
+sudo nohup uwsgi myapp.ini &
+
+# Probably do this for running UWSGI:
+sudo nohup uwsgi myapp.ini  --http-socket :5000
 
 # Folders
 cd "/mnt/d/Documents/Github Projects/test"
@@ -35,12 +41,16 @@ source myenv/bin/activate
 
 # Upgrade pip:
 pip install -U pip
-
 # Install Tensorflow after upgrading pip:
 pip install tensorflow
-
 # Also need to install other libraries:
 pip install numpy pandas scikit-learn scikit-image
 
-# Probably do this:
-sudo nohup uwsgi myapp.ini --http-socket :5000
+# List processes on port 80
+sudo lsof -t -i:80
+
+# Check Errors on NGINX
+sudo tail -15 /var/log/nginx/error.log
+
+# To run in emperor
+sudo uwsgi --emperor /etc/uwsgi/apps-enabled/
