@@ -6,7 +6,7 @@
         
         {% if not unique %}
         <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="POST"
-            enctype="multipart/form-data">
+            enctype="multipart/form-data"  onsubmit=showLoading()>
             <h1>Deep Slice</h1>
             <p>Upload your images of brain slices.</p>
             <div class="ui action input" style="font-size: initial">
@@ -18,7 +18,7 @@
                     <label>I agree to the Terms and Conditions</label>
                 </div>
             </div>
-            <button class="ui primary button" onclick=showLoading()>Submit</button>
+            <button class="ui primary button">Submit</button>
         </form>
         <!-- Loading Div -->
         <div class="ui" id="loading" hidden>
