@@ -1,0 +1,10 @@
+1. Run Ubuntu 18.04 on VirtualBox
+2. Run 'sudo apt-get update'
+3. Run 'sudo apt-get install apache2'
+4. Run 'sudo apache2ctl configtest'
+5. Run 'sudo nano /etc/apache2/apache2.conf'
+6. Edit it to have ServerName 127.0.0.1
+7. Run 'sudo apache2ctl configtest' to confirm
+8. If successful, run 'sudo apache2ctl restart'
+9. Check localhost to see if app is running.
+10. If it is, congrats. Apache is installed

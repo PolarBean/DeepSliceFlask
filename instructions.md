@@ -48,9 +48,24 @@ pip install numpy pandas scikit-learn scikit-image
 
 # List processes on port 80
 sudo lsof -t -i:80
+# Kill Process
+sudo kill -9 <pid>
 
 # Check Errors on NGINX
 sudo tail -15 /var/log/nginx/error.log
 
 # To run in emperor
 sudo uwsgi --emperor /etc/uwsgi/apps-enabled/
+
+
+# -- APACHE -- #
+sudo nano /etc/apache2/sites-enabled/myapp.conf
+
+# To restart:
+sudo apache2ctl restart
+
+# For Error Logs:
+sudo nano /var/log/apache2/error.log
+
+
+/var/www/myapp/myenv/lib/python3.8/site-packages
