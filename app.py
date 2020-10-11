@@ -31,6 +31,7 @@ Created on Fri Jun 19 04:14:37 2020
 # TODO: Create a Dashboard for Users
 
 import os, uuid, sys, threading
+sys.path.insert(0, "/home/Thermodev/DeepSliceFlask")
 from flask import (
     Flask,
     flash,
