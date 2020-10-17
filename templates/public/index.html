@@ -25,8 +25,13 @@
             <div class="ui active dimmer">
                 <div class="ui indeterminate text loader">Preparing Files...</div>
             </div>
-            <!-- <p></p> -->
         </div>
+
+        
+        <div class="ui indicating progress" id="progressBar" style="display: none; margin-top: 20px;">
+            <div class="bar"></div>
+            <div class="label" style="color: white;">Adding Photos</div>
+          </div>
 
         {% else %}
         <!-- Display Files to download -->
@@ -39,8 +44,6 @@
                 <button class="ui secondary button" type="submit">Download XML</button>
             </form>
         </div>
-
-        
         
         <form action="/clear-session" class="ui inverted form" method="POST">
             <button class="ui inverted red button">Go Back</button>
@@ -54,33 +57,46 @@
 $('#brainForm').submit(function(e) {
     e.preventDefault();
     
-    document.querySelector('#loading').hidden = false;
+    var total = 0;
     var count = 0;
     var formData = new FormData(this);
     
     console.log(formData);
     formData.forEach((entry) => {
-        count++;
+        total++;
     });
-    $('#example1').progress();
+    $('#progressBar').show();
+    $('#progressBar').progress({
+        text: {
+            active  : 'Uploading {value} of {total} photos',
+            success : '{total} Photos Uploaded!'
+        }
+    });
+    $('#progressBar').progress('set total', total);
+
     formData.forEach((entry) =>  {
         var url = "/upload-image";
         if (entry instanceof File) {
             var fileForm = new FormData()
             fileForm.append('image', entry)
-
             $.ajax({
                 url: url,
                 type: 'post',
                 data: fileForm,
                 success: (response) => {
+                    count++;
+                    $('#progressBar').progress('increment');
+                    if(count == total) {
+                        $('#loading').show()
+                    }
                 },
                 cache: false,
                 contentType: false,
                 processData: false
-            })
+            });
         }
-    })
+    });
+    
     
     // $.ajax({
     //     url: "/process-images",
