@@ -30,7 +30,7 @@
         
         <div class="ui indicating progress" id="progressBar" style="display: none; margin-top: 20px;">
             <div class="bar"></div>
-            <div class="label" style="color: white;">Adding Photos</div>
+            <div class="label" style="color: white;">Uploading Photos</div>
           </div>
 
         {% else %}
@@ -68,11 +68,12 @@ $('#brainForm').submit(function(e) {
     $('#progressBar').show();
     $('#progressBar').progress({
         text: {
-            active  : 'Uploading {value} of {total} photos',
+            active  : 'Uploaded {value} of {total} photos',
             success : '{total} Photos Uploaded!'
         }
     });
     $('#progressBar').progress('set total', total);
+    $('#progressBar').progress('set label', `Uploaded 0 of ${total} photos`);
 
     formData.forEach((entry) =>  {
         var url = "/upload-image";
