@@ -90,7 +90,6 @@ sem = threading.Semaphore()
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 def call_get_data(unique):
     completed = get_data(unique)
     # Run it once more as the necessary files should be downloaded.
@@ -112,10 +111,8 @@ def home():
         print(success_call)
         return redirect(url_for("home_unique", unique=session["unique"]))
 
-
     # Return index template along with error
     return render_template("public/index.html")
-
 
 # Route for already processed brain images
 @app.route("/<unique>", methods=["GET"])
@@ -124,7 +121,6 @@ def home_unique(unique):
     print(success_call)
     set_session(unique)
     return render_template("public/index.html", unique=unique)
-
 
 @app.route("/get-results/<path:unique>/<type>")
 def get_results(unique, type):
@@ -138,46 +134,55 @@ def get_results(unique, type):
     except FileNotFoundError:  # Occurs when the file is not found in the directory listed.
         abort(404)
 
-
 @app.route("/clear-session", methods=["GET", "POST"])
 def clear_session():
     session["unique"] = None
     session.modified = True
     return redirect(url_for("home"))
 
-
-@app.route("/process-image", methods=["POST"])
-def process_image():
+@app.route("/upload-image", methods=["POST"])
+def upload_image():
     image_names = []
-    unique_str = None
-    if request.method == "POST" and "images" in request.files:
-        # print('len: ' + str(len(request.files.getlist('images'))))
+    unique_str = ""
+    print(request.files)
+
+    if request.method == "POST" and "image" in request.files:
+        print('len: ' + str(len(request.files.getlist('images'))))
         create_folder(app.config["FILE_FOLDER"])
 
         unique_str = str(uuid.uuid4().hex)
+
+        if "image" in request.files:
+            print("Hello World")
+
+        print(request.files['image'])
+        image = request.files['image']
+        filename = secure_filename(image.filename) 
+        create_folder(app.config["FILE_FOLDER"] + unique_str)
+        create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
+        image.save(os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename))
+        session["unique"] = unique_str
         # Check first occurrence to see if there actually is a file
         # Probably a better way to check if user submitted form without a file
-        if request.files.getlist("images")[0].filename != "":
-            for image in request.files.getlist("images"):
-                if image.filename == "":
-                    flash("No selected image")
-                    return redirect(redirect(url_for("home")))
-                if image and allowed_file(image.filename):
-                    filename = secure_filename(image.filename)
-                    create_folder(app.config["FILE_FOLDER"] + unique_str)
-                    create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
-                    image.save(
-                        os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename,)
-                    )
-                    image_names.append(filename)
-            session["unique"] = unique_str
+        # if request.files.getlist("images")[0].filename != "":
+        #     for image in request.files.getlist("images"):
+        #         if image.filename == "":
+        #             flash("No selected image")
+        #             return redirect(redirect(url_for("home")))
+        #         if image and allowed_file(image.filename):
+        #             filename = secure_filename(image.filename)
+        #             create_folder(app.config["FILE_FOLDER"] + unique_str)
+        #             create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
+        #             image.save(
+        #                 os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename)
+        #             )
+        #             image_names.append(filename)
+        #     session["unique"] = unique_str
     return redirect(url_for("home_unique", unique=unique_str))
-
 
 def set_session(unique):
     print(unique)
     session["unique"] = unique
-
 
 def create_folder(dir):
     if not os.path.exists(dir):
@@ -185,13 +190,11 @@ def create_folder(dir):
     else:
         print("Dir already exists at: " + dir)
 
-
 def get_deep_slice():
     if not os.path.exists(app.config["DEEP_SLICE_FOLDER"]):
         Repo.clone_from(
             "https://github.com/PolarBean/DeepSlice", app.config["DEEP_SLICE_FOLDER"],
         )
-
 
 def get_data(unique):
     if not os.path.exists(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"] + ".csv"):
@@ -228,10 +231,8 @@ def get_data(unique):
         # File already exists. Already performed processing.
         return True
 
-
 if __name__ == "__main__":
     app.run(debug=True, port=5000, use_reloader=True)
-
 
 def create_app():
     return app

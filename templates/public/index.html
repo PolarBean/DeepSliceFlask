@@ -5,8 +5,8 @@
     <div class="column twelve wide" id="column-container">
         
         {% if not unique %}
-        <form action="/process-image" style="padding-bottom: 10px" class="ui inverted form" method="POST"
-            enctype="multipart/form-data"  onsubmit=showLoading()>
+        <form id="brainForm" style="padding-bottom: 10px" class="ui inverted form" method="POST"
+            enctype="multipart/form-data" >
             <h1>Deep Slice</h1>
             <p>Upload your images of brain slices.</p>
             <div class="ui action input" style="font-size: initial">
@@ -39,6 +39,8 @@
                 <button class="ui secondary button" type="submit">Download XML</button>
             </form>
         </div>
+
+        
         
         <form action="/clear-session" class="ui inverted form" method="POST">
             <button class="ui inverted red button">Go Back</button>
@@ -47,11 +49,51 @@
         {% endif %}
     </div>
 </div>
-
 <script>
-    function showLoading() {
-        document.querySelector('#loading').hidden = false;
-    }
-</script>
+    
+$('#brainForm').submit(function(e) {
+    e.preventDefault();
+    
+    document.querySelector('#loading').hidden = false;
+    var count = 0;
+    var formData = new FormData(this);
+    
+    console.log(formData);
+    formData.forEach((entry) => {
+        count++;
+    });
+    $('#example1').progress();
+    formData.forEach((entry) =>  {
+        var url = "/upload-image";
+        if (entry instanceof File) {
+            var fileForm = new FormData()
+            fileForm.append('image', entry)
 
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: fileForm,
+                success: (response) => {
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            })
+        }
+    })
+    
+    // $.ajax({
+    //     url: "/process-images",
+    //     type: 'post',
+    //     success: (response) => {
+    //         alert(response);
+    //     },
+    //     cache: false,
+    //     contentType: false,
+    //     processData: false
+    // })
+
+});
+
+</script>
 {% endblock content %}
