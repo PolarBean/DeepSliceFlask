@@ -31,7 +31,7 @@ Created on Fri Jun 19 04:14:37 2020
 # TODO: Create a Dashboard for Users
 
 import os, uuid, sys, threading
-sys.path.insert(0, "/home/Thermodev/DeepSliceFlask")
+sys.path.insert(0, os.path.sep + "home"  + os.path.sep + "Thermodev" + os.path.sep + "DeepSliceFlask")
 from flask import (
     Flask,
     flash,
@@ -51,9 +51,9 @@ from git.repo.base import Repo
 # import matplotlib.pyplot as plt
 # import matplotlib.image as mpimg
 
-FILE_FOLDER = "brain_files/"
-DEEP_SLICE_FOLDER = "deep_slice/"
-SUB_FOLDER = "images/"
+FILE_FOLDER = "brain_files" + os.path.sep
+DEEP_SLICE_FOLDER = "deep_slice" + os.path.sep
+SUB_FOLDER = "images" + os.path.sep
 FOLDER_NAME = SUB_FOLDER[:-1]
 RESULTS_FILE = "results"
 ALLOWED_EXTENSIONS = {
@@ -146,7 +146,7 @@ def setup_images():
     unique_str = session["unique"] 
     create_folder(app.config["FILE_FOLDER"])
     create_folder(app.config["FILE_FOLDER"] + unique_str)
-    create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
+    create_folder(app.config["FILE_FOLDER"] + unique_str + os.path.sep + app.config["SUB_FOLDER"])
     return "DONE"
 
 @app.route("/upload-image", methods=["POST"])
@@ -155,34 +155,14 @@ def upload_image():
     print(request.files)
 
     if request.method == "POST" and "image" in request.files:
-        # print('len: ' + str(len(request.files.getlist('images'))))
-
-        unique_str = session["unique"] 
-
-        if "image" in request.files:
-            print("Hello World")
+        unique_str = session["unique"]
 
         print(request.files['image'])
+        
         image = request.files['image']
         filename = secure_filename(image.filename) 
-        image.save(os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename))
-        #session["unique"] = unique_str
-        # Check first occurrence to see if there actually is a file
-        # Probably a better way to check if user submitted form without a file
-        # if request.files.getlist("images")[0].filename != "":
-        #     for image in request.files.getlist("images"):
-        #         if image.filename == "":
-        #             flash("No selected image")
-        #             return redirect(redirect(url_for("home")))
-        #         if image and allowed_file(image.filename):
-        #             filename = secure_filename(image.filename)
-        #             create_folder(app.config["FILE_FOLDER"] + unique_str)
-        #             create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
-        #             image.save(
-        #                 os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename)
-        #             )
-        #             image_names.append(filename)
-        #     session["unique"] = unique_str
+        image.save(os.path.join(app.config["FILE_FOLDER"] + unique_str + os.path.sep + app.config["SUB_FOLDER"], filename))
+
     return url_for("home_unique", unique=unique_str)
 
 def set_session(unique):
@@ -202,9 +182,9 @@ def get_deep_slice():
         )
 
 def get_data(unique):
-    if not os.path.exists(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"] + ".csv"):
+    if not os.path.exists(app.config["FILE_FOLDER"] + unique + os.path.sep + app.config["RESULTS"] + ".csv"):
         try:
-            sys.path.insert(0, os.getcwd() + "/deep_slice")
+            sys.path.insert(0, os.getcwd() + os.path.sep + "deep_slice")
             from deep_slice.DeepSlice import DeepSlice
             sem.acquire()  # Initiate Lock
 
@@ -218,7 +198,7 @@ def get_data(unique):
 
             Model = app.config["MODEL"]
             Model.predict(app.config["FILE_FOLDER"] + unique)  # Folder Name
-            Model.Save_Results(app.config["FILE_FOLDER"] + unique + "/" + app.config["RESULTS"])  # FileName + CSV / XML
+            Model.Save_Results(app.config["FILE_FOLDER"] + unique + os.path.sep + app.config["RESULTS"])  # FileName + CSV / XML
 
             sem.release()  # Release lock
             return True
