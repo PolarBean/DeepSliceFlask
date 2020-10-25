@@ -75,27 +75,44 @@ $('#brainForm').submit(function(e) {
     $('#progressBar').progress('set total', total);
     $('#progressBar').progress('set label', `Uploaded 0 of ${total} photos`);
 
-    formData.forEach((entry) =>  {
-        var url = "/upload-image";
-        if (entry instanceof File) {
-            var fileForm = new FormData()
-            fileForm.append('image', entry)
-            $.ajax({
-                url: url,
-                type: 'post',
-                data: fileForm,
-                success: (response) => {
-                    count++;
-                    $('#progressBar').progress('increment');
-                    if(count == total) {
-                        $('#loading').show()
-                    }
-                },
-                cache: false,
-                contentType: false,
-                processData: false
+
+    $.ajax({
+        url: "/setup-images",
+        type: 'post',
+        success: (response) => {
+            formData.forEach((entry) =>  {
+                var url = "/upload-image";
+                if (entry instanceof File) {
+                    var fileForm = new FormData()
+                    fileForm.append('image', entry)
+                    $.ajax({
+                        url: url,
+                        type: 'post',
+                        data: fileForm,
+                        success: (response) => {
+                            count++;
+                            $('#progressBar').progress('increment');
+                            if(count == total) {
+                                $('#loading').show()
+                                url = "/"
+                                console.log("Now Processing!")
+                                window.location.replace("/");
+                                // $.ajax({
+                                //     url: url,
+                                //     type: 'get'
+                                // });
+                            }
+                        },
+                        cache: false,
+                        contentType: false,
+                        processData: false
+                    });
+                }
             });
-        }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
     });
     
     

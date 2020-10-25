@@ -140,17 +140,24 @@ def clear_session():
     session.modified = True
     return redirect(url_for("home"))
 
+@app.route("/setup-images", methods=["POST"])
+def setup_images():
+    session["unique"] = str(uuid.uuid4().hex)
+    unique_str = session["unique"] 
+    create_folder(app.config["FILE_FOLDER"])
+    create_folder(app.config["FILE_FOLDER"] + unique_str)
+    create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
+    return "DONE"
+
 @app.route("/upload-image", methods=["POST"])
 def upload_image():
-    image_names = []
     unique_str = ""
     print(request.files)
 
     if request.method == "POST" and "image" in request.files:
-        print('len: ' + str(len(request.files.getlist('images'))))
-        create_folder(app.config["FILE_FOLDER"])
+        # print('len: ' + str(len(request.files.getlist('images'))))
 
-        unique_str = str(uuid.uuid4().hex)
+        unique_str = session["unique"] 
 
         if "image" in request.files:
             print("Hello World")
@@ -158,10 +165,8 @@ def upload_image():
         print(request.files['image'])
         image = request.files['image']
         filename = secure_filename(image.filename) 
-        create_folder(app.config["FILE_FOLDER"] + unique_str)
-        create_folder(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"])
         image.save(os.path.join(app.config["FILE_FOLDER"] + unique_str + "/" + app.config["SUB_FOLDER"], filename))
-        session["unique"] = unique_str
+        #session["unique"] = unique_str
         # Check first occurrence to see if there actually is a file
         # Probably a better way to check if user submitted form without a file
         # if request.files.getlist("images")[0].filename != "":
@@ -178,7 +183,7 @@ def upload_image():
         #             )
         #             image_names.append(filename)
         #     session["unique"] = unique_str
-    return redirect(url_for("home_unique", unique=unique_str))
+    return url_for("home_unique", unique=unique_str)
 
 def set_session(unique):
     print(unique)
