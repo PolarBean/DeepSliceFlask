@@ -753,25 +753,28 @@ var pJS = function(tag_id, params){
   pJS.fn.modes.pushParticles = function(nb, pos){
 
     pJS.tmp.pushing = true;
-
+    
+  var limitNumOfParticles = Math.floor(pJS.canvas.el.width / 7.5);
     for(var i = 0; i < nb; i++){
-      pJS.particles.array.push(
-        new pJS.fn.particle(
-          pJS.particles.color,
-          pJS.particles.opacity.value,
-          {
-            'x': pos ? pos.pos_x : Math.random() * pJS.canvas.w,
-            'y': pos ? pos.pos_y : Math.random() * pJS.canvas.h
+      if(pJS.particles.array.length < limitNumOfParticles){
+          pJS.particles.array.push(
+            new pJS.fn.particle(
+              pJS.particles.color,
+              pJS.particles.opacity.value,
+              {
+                'x': pos ? pos.pos_x : Math.random() * pJS.canvas.w,
+                'y': pos ? pos.pos_y : Math.random() * pJS.canvas.h
+              }
+            )
+          )
+          if(i == nb-1){
+            if(!pJS.particles.move.enable){
+              pJS.fn.particlesDraw();
+            }
+            pJS.tmp.pushing = false;
           }
-        )
-      )
-      if(i == nb-1){
-        if(!pJS.particles.move.enable){
-          pJS.fn.particlesDraw();
         }
-        pJS.tmp.pushing = false;
       }
-    }
 
   };
 
