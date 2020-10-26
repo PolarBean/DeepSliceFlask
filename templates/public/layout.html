@@ -12,44 +12,6 @@
     <script src="{{ url_for('static', filename='jquery-3.5.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='semantic-ui/semantic.js') }}"></script>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
-    <script>
-       var count = 0;
-    
-        // $('#brainForm').submit( (e) =>  {
-        //         e.preventDefault();
-        // });
-
-      
-        // $('input[type="file"]').on('ajax', function(){
-        //     var $this = $(this);
-        //     if (typeof this.files[count] === 'undefined') { return false; }
-    
-        //     $.ajax({
-        //         'type':'POST',
-        //         'data': (new FormData()).append('file', this.files[count]),
-        //         'contentType': false,
-        //         'processData': false,
-        //         'url': "/process-image",
-        //         'xhr': function() {  
-        //         var xhr = $.ajaxSettings.xhr();
-        //         if(xhr.upload){ 
-        //             xhr.upload.addEventListener('progress', progressbar, false);
-        //         }
-        //         return xhr;
-        //         },
-        //         'success': function(){
-        //         count++;
-        //         $this.trigger('ajax');
-        //         }
-        //     });
-        // }).trigger('ajax');
-    
-        function showLoading() {
-            document.querySelector('#loading').hidden = false;
-            var count = 0;
-        }
-    </script>
 </head>
 
 

@@ -52,8 +52,8 @@
         {% endif %}
     </div>
 </div>
+
 <script>
-    
 $('#brainForm').submit(function(e) {
     e.preventDefault();
     
@@ -74,7 +74,6 @@ $('#brainForm').submit(function(e) {
     });
     $('#progressBar').progress('set total', total);
     $('#progressBar').progress('set label', `Uploaded 0 of ${total} photos`);
-
 
     $.ajax({
         url: "/setup-images",
@@ -114,20 +113,13 @@ $('#brainForm').submit(function(e) {
         contentType: false,
         processData: false
     });
-    
-    
-    // $.ajax({
-    //     url: "/process-images",
-    //     type: 'post',
-    //     success: (response) => {
-    //         alert(response);
-    //     },
-    //     cache: false,
-    //     contentType: false,
-    //     processData: false
-    // })
 
 });
+
+        
+function showLoading() {
+    document.querySelector('#loading').hidden = false;
+}
 
 </script>
 {% endblock content %}
