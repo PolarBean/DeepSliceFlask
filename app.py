@@ -190,10 +190,9 @@ def get_data(unique):
 
             if "MODEL" not in app.config:
                 Model = DeepSlice(
-                    app.config["DEEP_SLICE_FOLDER"] + "Synthetic_data_final.hdf5",
                     web=True,
                     folder_name=app.config["FOLDER_NAME"])
-                Model.Build(app.config["DEEP_SLICE_FOLDER"] + "xception_weights_tf_dim_ordering_tf_kernels.h5")
+                Model.Build()
                 app.config["MODEL"] = Model
 
             Model = app.config["MODEL"]
