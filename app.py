@@ -4,7 +4,7 @@ Created on Fri Jun 19 04:14:37 2020
 
 @author: ThermoDev
 @description:
-    This is the FLASK based Python web app for the DEEP_SLICE library.
+    This is the FLASK based Python web app for the DEEPSLICE library.
 
     Each image uploaded will be saved in the FILE_FOLDER and SUBFOLDER, 
         e.g., FILE_FOLDER/SUB_FOLDER/{images}
@@ -204,8 +204,8 @@ def get_data(unique):
             return True
         except ImportError as e:
             sem.release()
-            # Need to download the Deep_Slice files from github to perform processing.
-            print("Could not import Deep Slice, or a library in Deep Slice. Importing...")
+            # Need to download the DeepSlice files from github to perform processing.
+            print("Could not import DeepSlice, or a library in DeepSlice. Importing...")
             print(e)
             get_deep_slice()
             return False
